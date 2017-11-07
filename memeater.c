@@ -18,6 +18,7 @@ main(int argc, char *argv[])
 {
   static const char optstr[] =
     "+"
+	"s:" /* swap */
     "f:" /* filename */
     "m:"; /* memory */
 
@@ -28,6 +29,7 @@ main(int argc, char *argv[])
   int opt;
   unsigned char *mem;
   size_t i;
+  int mlock_needed = 1;
   fd_set readfds;
 
   res = sysconf(_SC_PAGESIZE);
@@ -48,6 +50,8 @@ main(int argc, char *argv[])
       case 'f':
         filename = optarg;
         break;
+      case 's':
+		mlock_needed = 0;
       case 'm': {
         char *end = NULL;
 
@@ -101,18 +105,21 @@ main(int argc, char *argv[])
 
   /* lock pages */
 
-  res = mlock(mem, siz);
+  if (mlock_needed) {
+    res = mlock(mem, siz);
+    fprintf(stdout, "locked memory (size: %u)\n", siz);
 
-  if (res < 0) {
-    fprintf(stderr,
-            "failed to lock memory, pages might get evicted\n",
-            strerror(errno));
+    if (res < 0) {
+      fprintf(stderr,
+              "failed to lock memory, pages might get evicted\n",
+              strerror(errno));
+    }
   }
 
   /* touch pages to map them into address space */
-
-  for (i = 0; i < siz; i += pgsize) {
-    mem[i] = i/pgsize;
+  srand(time(NULL));
+  for (i = 0; i < siz; ++i) {
+    mem[i] = rand() % 255;
   }
 
   /* open file for waiting */

@@ -31,3 +31,6 @@ Memeater supports the following command-line options.
                     are supported. The modifier 'p' specifies the number
                     of pages to allocate. Minor divergences from the
                     specified size are possible.
+
+    -s <size>       Sets the amount of memory which can be swapped out.
+                    The modifiders are same to '-m' option's.
